@@ -10,8 +10,6 @@ import static Projects.GameOfLife.Model.ROWS;
 
 public class View extends JPanel {
 
-    Model model;
-
     private static final int BTN_HEIGHT = 15;
     private static final int BTN_WIDTH = 15;
     private static final Color BORDER_COLOR = new Color(152, 152, 152);
@@ -20,38 +18,41 @@ public class View extends JPanel {
 
     private final JButton[][] board;
 
-    public View(Model model) {
-        this.model = model;
+    public View() {
         setLayout(new GridLayout(ROWS, COLS));
         board = new JButton[ROWS][COLS];
-        initBoard(board);
+        initBoard();
     }
 
-    private void initBoard(JButton[][] gameBoard) {
+    public void initBoard() {
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
-                gameBoard[i][j] = new JButton();
-                gameBoard[i][j].putClientProperty("row", i);
-                gameBoard[i][j].putClientProperty("col", j);
-                gameBoard[i][j].setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
-                gameBoard[i][j].setPreferredSize(new Dimension(BTN_WIDTH, BTN_HEIGHT));
-                gameBoard[i][j].setOpaque(true);
-                colorDead(i, j);
-                add(gameBoard[i][j]);
+                board[i][j] = new JButton();
+                board[i][j].putClientProperty("row", i);
+                board[i][j].putClientProperty("col", j);
+                board[i][j].setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
+                board[i][j].setPreferredSize(new Dimension(BTN_WIDTH, BTN_HEIGHT));
+                board[i][j].setOpaque(true);
+                setCell(i, j, false);
+                add(board[i][j]);
             }
         }
     }
 
-    public boolean isColoredAlive(int i, int j) {
-        return board[i][j].getBackground().equals(ALIVE_COLOR);
+    public void setCell(int i, int j, boolean alive) {
+        if (alive) {
+            board[i][j].setBackground(ALIVE_COLOR);
+        } else {
+            board[i][j].setBackground(DEAD_COLOR);
+        }
     }
 
-    public void colorAlive(int i, int j) {
-        board[i][j].setBackground(ALIVE_COLOR);
-    }
-
-    public void colorDead(int i, int j) {
-        board[i][j].setBackground(DEAD_COLOR);
+    public void updateView(Model model) {
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLS; j++) {
+                setCell(i, j, model.isAlive(i, j));
+            }
+        }
     }
 
     public void addCellListeners(ActionListener listener) {
@@ -62,16 +63,7 @@ public class View extends JPanel {
         }
     }
 
-    public void updateView(Model model) {
-        boolean[][] nextBoard = model.getNextBoard();
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLS; j++) {
-                if (nextBoard[i][j]) {
-                    colorAlive(i, j);
-                } else {
-                    colorDead(i, j);
-                }
-            }
-        }
+    public boolean isColoredAlive(int i, int j) {
+        return board[i][j].getBackground().equals(ALIVE_COLOR);
     }
 }
