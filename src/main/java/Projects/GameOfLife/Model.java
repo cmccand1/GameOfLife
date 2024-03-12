@@ -1,34 +1,46 @@
 package Projects.GameOfLife;
 
-public class Model {
+public final class Model {
 
     public static final int ROWS = 50;
     public static final int COLS = 50;
 
-    boolean[][] board1;
-    boolean[][] board2;
-    boolean[][] currentBoard;
-    boolean[][] nextBoard;
+    private boolean[][] currentBoard;
+    private boolean[][] nextBoard;
     private int currentGeneration;
 
-    public Model() {
+    private Model() {
         currentGeneration = 0;
-        board1 = new boolean[ROWS][COLS];
-        board2 = new boolean[ROWS][COLS];
-        currentBoard = board1;
-        nextBoard = board2;
+        currentBoard = new boolean[ROWS][COLS];
+        nextBoard = new boolean[ROWS][COLS];
+    }
+
+    public static Model createModel() {
+        return new Model();
     }
 
     public boolean isAlive(int i, int j) {
         return currentBoard[i][j];
     }
 
-    public void setAlive(int i, int j) {
-        currentBoard[i][j] = true;
+    public void setCell(int i, int j, boolean alive) {
+        currentBoard[i][j] = alive;
     }
 
-    public void setDead(int i, int j) {
-        currentBoard[i][j] = false;
+    public int getGenerationCount() {
+        return currentGeneration;
+    }
+
+    public void nextGeneration() {
+        // Iterate through the current board and populate the next board
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLS; j++) {
+                decideFate(i, j);
+            }
+        }
+        currentGeneration++;
+        swapBoards();
+        clearNextBoard();
     }
 
     private void survive(int i, int j) {
@@ -39,30 +51,16 @@ public class Model {
         nextBoard[i][j] = false;
     }
 
-    public void swapBoards() {
+    private void swapBoards() {
         boolean[][] temp = currentBoard;
         currentBoard = nextBoard;
         nextBoard = temp;
-        clearNextBoard();
-    }
-
-    public boolean[][] getNextBoard() {
-        return nextBoard;
     }
 
     private void clearNextBoard() {
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
                 nextBoard[i][j] = false;
-            }
-        }
-    }
-
-    public void nextGeneration() {
-        currentGeneration++;
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLS; j++) {
-                decideFate(i, j);
             }
         }
     }
