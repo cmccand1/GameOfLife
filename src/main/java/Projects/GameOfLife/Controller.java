@@ -3,27 +3,33 @@ package Projects.GameOfLife;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
-@SuppressWarnings("FeatureEnvy")
-public class Controller {
+public final class Controller {
 
     Model model;
     View view;
 
-    public Controller(Model model, View view) {
+    private Controller(Model model, View view) {
         this.model = model;
         this.view = view;
 
         view.addCellListeners(this::cellClickedActionPerformed);
+    }
 
-//        randomInit();
-//        simulate();
+    public static Controller createController(Model model, View view) {
+        return new Controller(model, view);
+    }
+
+    public static Controller createControllerWithRandomInit(Model model, View view) {
+        Controller controller = new Controller(model, view);
+        controller.randomInit();
+        return controller;
     }
 
     public void simulate() {
         Timer timer = new Timer(100, e -> {
-            model.nextGeneration();
+            System.out.println("Generation: " + model.getGenerationCount());
             view.updateView(model);
-            model.swapBoards();
+            model.nextGeneration();
         });
         timer.start();
     }
@@ -39,24 +45,23 @@ public class Controller {
 
     private void toggleCell(int row, int col) {
         if (model.isAlive(row, col)) {
-            model.setDead(row, col);
-            view.colorDead(row, col);
+            model.setCell(row, col, false);
+            view.setCell(row, col, false);
         } else {
-            model.setAlive(row, col);
-            view.colorAlive(row, col);
+            model.setCell(row, col, true);
+            view.setCell(row, col, true);
         }
     }
 
     private void randomInit() {
+        final double FRACTION_OF_CELLS_FILLED = 0.2;
         for (int i = 0; i < Model.ROWS; i++) {
             for (int j = 0; j < Model.COLS; j++) {
-                if (Math.random() < 0.05) {
-                    model.setAlive(i, j);
-                    view.colorAlive(i, j);
+                if (Math.random() < FRACTION_OF_CELLS_FILLED) {
+                    model.setCell(i, j, true);
+                    view.setCell(i, j, true);
                 }
             }
         }
     }
-
-
 }
