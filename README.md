@@ -25,8 +25,8 @@ devised by the British mathematician John Horton Conway in 1970.
 1. Clone the repository:
 
 ```
-git clone https://github.com/cmccand1/GOL.git
-cd GOL
+git clone git@github.com:cmccand1/GameOfLife.git
+cd GameOfLife
 ```
 
 2. Build the project using Gradle:
