@@ -17,7 +17,7 @@ devised by the British mathematician John Horton Conway in 1970.
 
 #### Prerequisites
 
-- Java Development Kit (JDK) 11 or higher
+- Java Development Kit (JDK) 17 or higher
 - Gradle
 
 ### Installation
@@ -25,8 +25,8 @@ devised by the British mathematician John Horton Conway in 1970.
 1. Clone the repository:
 
 ```
-git clone https://github.com/your-username/game-of-life.git 
-cd game-of-life
+git clone https://github.com/cmccand1/GOL.git
+cd GOL
 ```
 
 2. Build the project using Gradle:
