@@ -46,6 +46,7 @@ public final class GameOptions extends JPanel implements Observer {
 
         // Create a panel for the slider and label
         JPanel sliderPanel = new JPanel();
+        JLabel speedLabel = new JLabel("Speed:");
         sliderPanel.setLayout(new BoxLayout(sliderPanel, BoxLayout.Y_AXIS));
 
         // set preferred size for the slider to take up half the frame width
@@ -53,6 +54,7 @@ public final class GameOptions extends JPanel implements Observer {
 
         // center align the slider and label within sliderPanel
         JPanel sliderContainer = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        sliderContainer.add(speedLabel);
         sliderContainer.add(delaySlider);
         sliderPanel.add(sliderContainer);
 
