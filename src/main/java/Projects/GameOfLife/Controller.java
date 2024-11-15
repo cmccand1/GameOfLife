@@ -1,139 +1,100 @@
 package Projects.GameOfLife;
 
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
 import java.awt.event.ActionEvent;
+import javax.swing.JButton;
+import javax.swing.event.ChangeEvent;
 
 /**
- * The Controller class handles the interaction between the Model and the View
- * in the Game of Life application. It manages user input and updates the view
- * based on the model's state.
+ * The Controller class handles the interaction between the Model and the View in the Game of Life
+ * application. It manages user input and updates the view based on the model's state.
  */
 public final class Controller {
 
-    Model model;
-    View view;
-    GameOptions gameOptions;
+  Model model;
+  GameView gameView;
+  ControlsPanel controlsPanel;
 
-    /**
-     * Constructs a Controller with the specified model and view.
-     *
-     * @param model the model of the game
-     * @param view  the view of the game
-     */
-    private Controller(Model model, View view, GameOptions gameOptions) {
-        this.model = model;
-        this.view = view;
-        this.gameOptions = gameOptions;
+  /**
+   * Constructs a Controller with the specified model and view.
+   *
+   * @param model    the model of the game
+   * @param gameView the view of the game
+   */
+  public Controller(Model model, GameView gameView, ControlsPanel controlsPanel) {
+    this.model = model;
+    this.gameView = gameView;
+    this.controlsPanel = controlsPanel;
 
-        // Add listeners to the views
-        gameOptions.addStartStopButtonActionListener(this::startStopButtonActionPerformed);
-        gameOptions.addNextButtonActionListener(this::nextButtonActionPerformed);
-        gameOptions.addResetButtonActionListener(this::resetButtonActionPerformed);
-        gameOptions.addSpeedSliderChangeListener(this::delaySliderChangeActionPerformed);
-        view.addCellListeners(this::cellClickedActionPerformed);
-        model.addObserver(gameOptions);
-        model.addObserver(view);
+    // Add listeners to the views
+    controlsPanel.addStartStopButtonActionListener(this::startStopButtonActionPerformed);
+    controlsPanel.addNextButtonActionListener(this::nextButtonActionPerformed);
+    controlsPanel.addResetButtonActionListener(this::resetButtonActionPerformed);
+    controlsPanel.addSpeedSliderChangeListener(this::delaySliderChangeActionPerformed);
+    gameView.addCellListeners(this::cellClickedActionPerformed);
+    model.addObserver(controlsPanel);
+    model.addObserver(gameView);
+  }
+
+  /**
+   * Handles the action performed when a cell is clicked. Toggles the state of the cell in both the
+   * model and the view.
+   *
+   * @param e the action event triggered by clicking a cell
+   */
+  private void cellClickedActionPerformed(ActionEvent e) {
+    // get the button that was clicked
+    JButton button = (JButton) e.getSource();
+    int row = (int) button.getClientProperty("row");
+    int col = (int) button.getClientProperty("col");
+
+    // toggle the cell in the model and view
+    boolean alive = model.isAlive(row, col);
+    model.setCell(row, col, !alive);
+    // view is observer of model, so it will update automatically
+
+    assert ((!model.isAlive(row, col) && !gameView.isColoredAlive(row, col)) || (
+        model.isAlive(row, col) && gameView.isColoredAlive(row, col)));
+  }
+
+  private void delaySliderChangeActionPerformed(ChangeEvent changeEvent) {
+    int sliderValue = controlsPanel.getDelaySliderValue();
+    int delayInMs = calculateSimulationDelay(sliderValue);
+    model.setSimulationSpeed(delayInMs);
+  }
+
+  /**
+   * Calculate the simulation delay in (milliseconds) using linear interpolation
+   *
+   * @param sliderValue the numerical value of the slider
+   * @return the simulation delay (in milliseconds)
+   */
+  private int calculateSimulationDelay(int sliderValue) {
+    return Model.MIN_DELAY_IN_MS +
+        (Model.MAX_DELAY_IN_MS - Model.MIN_DELAY_IN_MS) *
+            (ControlsPanel.MAX_SLIDER_POS - sliderValue) /
+            (ControlsPanel.MAX_SLIDER_POS - ControlsPanel.MIN_SLIDER_POS);
+  }
+
+  private void resetButtonActionPerformed(ActionEvent actionEvent) {
+    model.stopSimulation();
+    controlsPanel.resetStartStopButton();
+    model.reset();
+  }
+
+  private void nextButtonActionPerformed(ActionEvent actionEvent) {
+    if (model.isSimulationRunning()) {
+      model.stopSimulation();
+      controlsPanel.toggleStartStopButton();
     }
+    model.nextGeneration();
+  }
 
-
-    /**
-     * Creates a Controller with the specified model and view.
-     *
-     * @param model the model of the game
-     * @param view  the view of the game
-     *
-     * @return a new Controller instance
-     */
-    public static Controller newBlankGameController(Model model, View view, GameOptions gameOptions) {
-        return new Controller(model, view, gameOptions);
+  private void startStopButtonActionPerformed(ActionEvent actionEvent) {
+    if (model.isSimulationRunning()) {
+      model.stopSimulation();
+    } else {
+      model.startSimulation();
     }
-
-    /**
-     * Creates a Controller with the specified model and view, and initializes
-     * the model with a random state.
-     *
-     * @param model the model of the game
-     * @param view  the view of the game
-     *
-     * @return a new Controller instance with a randomly initialized model
-     */
-    public static Controller newRandomGameController(Model model, View view, GameOptions gameOptions) {
-        Controller controller = new Controller(model, view, gameOptions);
-        final double FRACTION_OF_CELLS_FILLED = 0.2;
-        for (int i = 0; i < Model.ROWS; i++) {
-            for (int j = 0; j < Model.COLS; j++) {
-                if (Math.random() < FRACTION_OF_CELLS_FILLED) {
-                    model.setCell(i, j, true);
-                    view.setCell(i, j, true);
-                }
-            }
-        }
-        return controller;
-    }
-
-    /**
-     * Toggles the state of the cell at the specified row and column in both
-     * the model and the view.
-     *
-     * @param row the row of the cell
-     * @param col the column of the cell
-     */
-    private void toggleCell(int row, int col) {
-        if (model.isAlive(row, col)) {
-            model.setCell(row, col, false);
-            view.setCell(row, col, false);
-        } else {
-            model.setCell(row, col, true);
-            view.setCell(row, col, true);
-        }
-    }
-
-    /**
-     * Handles the action performed when a cell is clicked. Toggles the state
-     * of the cell in both the model and the view.
-     *
-     * @param e the action event triggered by clicking a cell
-     */
-    private void cellClickedActionPerformed(ActionEvent e) {
-        JButton button = (JButton) e.getSource();
-        int row = (int) button.getClientProperty("row");
-        int col = (int) button.getClientProperty("col");
-        toggleCell(row, col);
-        // model and view agree
-        assert ((!model.isAlive(row, col) && !view.isColoredAlive(row, col)) || (model.isAlive(row, col) && view.isColoredAlive(row, col)));
-    }
-
-    private void delaySliderChangeActionPerformed(ChangeEvent changeEvent) {
-        int sliderValue = gameOptions.getDelaySliderValue();
-        // use linear interpolation to map slider value to delay in ms
-        int delayInMs = Model.MIN_DELAY_IN_MS +
-                (Model.MAX_DELAY_IN_MS - Model.MIN_DELAY_IN_MS) *
-                        (GameOptions.MAX_SLIDER_POS - sliderValue) /
-                        (GameOptions.MAX_SLIDER_POS - GameOptions.MIN_SLIDER_POS);
-        model.setSimulationSpeed(delayInMs);
-    }
-
-    private void resetButtonActionPerformed(ActionEvent actionEvent) {
-        model.stopSimulation();
-        gameOptions.resetStartStopButton();
-        model.newBlankGame();
-    }
-
-    private void nextButtonActionPerformed(ActionEvent actionEvent) {
-        if (model.isSimulationRunning()) {
-            model.stopSimulation();
-            gameOptions.toggleStartStopButton();
-        }
-        model.nextGeneration();
-    }
-
-    private void startStopButtonActionPerformed(ActionEvent actionEvent) {
-        if (model.isSimulationRunning()) {
-            model.stopSimulation();
-        } else {
-            model.startSimulation();
-        }
-        gameOptions.toggleStartStopButton();
-    }
+    controlsPanel.toggleStartStopButton();
+  }
 }
